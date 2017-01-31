@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
   while(1) {
     char* line = NULL;    // Pointer that will hold the line we read in
     size_t line_length;   // Space for the length of the line
+    int counter = 0;  
     
     // Print the shell prompt
     printf("> ");
@@ -28,8 +29,16 @@ int main(int argc, char** argv) {
         exit(0);
       }
     }
+
     
-    printf("Received command: %s\n", line);
+    char** inputs = (char**) malloc (strlen(line)); 
+    char* word = strtok (line, " ");
+    while (word != NULL) {
+      inputs[counter] = word;
+      printf ("word is %s \n", inputs[counter]); 
+      counter++;
+      word = strtok (NULL, " ");
+    }
     
     free(line);
   }
