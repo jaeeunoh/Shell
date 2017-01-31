@@ -31,21 +31,21 @@ int main(int argc, char** argv) {
     }
 
     char** inputs = (char**) malloc (strlen(line)); 
-    char* word = strtok (line, " \n");
+    char* word = strtok (line, " \n;");
 
     //Execute changing directory function in parent process
     if (strcmp (word, "cd") == 0) {
       word = "chdir";
-      int error_msg = chdir(strtok(NULL, " \n"));
+      int error_msg = chdir(strtok(NULL, " \n;"));
       if (error_msg < 0) {
         perror("Error");
       }
     } else { 
       while (word != NULL) {    
         inputs[counter] = word;
-        //printf ("word is %s \n", inputs[counter]); 
+        printf ("word is %s \n", inputs[counter]); 
         counter++;
-        word = strtok (NULL, " \n");
+        word = strtok (NULL, " \n;");
       }
       // Append null terminator
       inputs[counter] = NULL;  
