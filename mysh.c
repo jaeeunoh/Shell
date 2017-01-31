@@ -31,33 +31,43 @@ int main(int argc, char** argv) {
     }
 
     char** inputs = (char**) malloc (strlen(line)); 
-    char* word = strtok (line, " ");
-    while (word != NULL) {
-      inputs[counter] = word;
-      //printf ("word is %s \n", inputs[counter]); 
-      counter++;
-      word = strtok (NULL, " ");
-    }
-    // Append null terminator
-    inputs[counter] = NULL;  
+    char* word = strtok (line, " \n");
 
-    pid_t child_id = fork();
-
-    int status;
-    int exec_status;
-    if (child_id == 0) {
-      exec_status = execvp (inputs[0], inputs);
-      if (exec_status < 0) {
+    //Execute changing directory function in parent process
+    if (strcmp (word, "cd") == 0) {
+      word = "chdir";
+      int error_msg = chdir(strtok(NULL, " \n"));
+      if (error_msg < 0) {
         perror("Error");
-        exit(2);
       }
-    } else {
-      wait(&status);
-      printf ("Child process %d exited with status %d\n", child_id, status); 
-    } 
+    } else { 
+      while (word != NULL) {    
+        inputs[counter] = word;
+        //printf ("word is %s \n", inputs[counter]); 
+        counter++;
+        word = strtok (NULL, " \n");
+      }
+      // Append null terminator
+      inputs[counter] = NULL;  
+
+      pid_t child_id = fork();
+
+      int status;
+      int exec_status;
+      if (child_id == 0) {
+        exec_status = execvp (inputs[0], inputs);
+        if (exec_status < 0) {
+          perror("Error");
+          exit(2);
+        }
+      } else {
+        wait(&status);
+        printf ("Child process %d exited with status %d\n", child_id, status); 
+      } 
       
-    free(line);
-  }
+      free(line);
+    }
+  } 
   
   return 0;
 }
