@@ -8,6 +8,7 @@
 #define MAX_ARGS 128
 
 void run_command(char** args);
+void run_in_background (char** args); 
 
 int main(int argc, char** argv) {
   while(1) {
@@ -75,9 +76,9 @@ int main(int argc, char** argv) {
         run_command(inputs); 
       }
     }
-free(line); 
+    free(line); 
   }
-return 0; 
+  return 0; 
 } 
 
   void run_command(char** args) { 
@@ -100,6 +101,13 @@ return 0;
       wait(&status);
       printf ("Child process %d exited with status %d\n", child_id, status); 
     } 
+  }
+
+  void run_in_background (char** args) {
+    int status; 
+    pid_t child_id = fork();
+    int exec_status;
+
   }
 
 
