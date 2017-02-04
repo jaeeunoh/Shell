@@ -13,7 +13,6 @@ int main(int argc, char** argv) {
   while(1) {
     char* line = NULL;    // Pointer that will hold the line we read in
     size_t line_length;   // Space for the length of the line
-    int counter = 0;  
     int inital_counter = 0; 
     
     // Print the shell prompt
@@ -43,8 +42,9 @@ int main(int argc, char** argv) {
       }
       int i;
       for (i = 0; i < inital_counter; i++) { 
-         char* word = strtok (line, " \n"); 
-        char** inputs = (char**) malloc (strlen(line)); 
+        char* word = strtok (inputsWithSemicolon[i], " \n"); 
+        char** inputs = (char**) malloc (strlen(inputsWithSemicolon[i])); 
+        int counter = 0; 
         while (word != NULL) {    
           inputs[counter] = word;
           printf ("word is %s \n", inputs[counter]); 
@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
         run_command(inputs); 
       }
     } else { 
+      int counter = 0; 
       char* word = strtok (line, " \n"); 
       char** inputs = (char**) malloc (strlen(line)); 
       if (strcmp (word, "cd") == 0) {
@@ -66,7 +67,6 @@ int main(int argc, char** argv) {
       } else { 
         while (word != NULL) {    
           inputs[counter] = word;
-          printf ("word is %s \n", inputs[counter]); 
           counter++;
           word = strtok (NULL, " \n");
         }
@@ -84,8 +84,14 @@ return 0;
     int status; 
     pid_t child_id = fork();
     int exec_status;
+    // If the child creation process fails
+    if (child_id < 0) {
+      perror("Error");
+    }
+    // If the child creation is successful
     if (child_id == 0) {
       exec_status = execvp (args[0], args);
+      // If the command fails to execute
       if (exec_status < 0) {
         perror("Error");
         exit(2);
