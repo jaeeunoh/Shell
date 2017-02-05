@@ -9,12 +9,12 @@
 
 void run_command(char** args);
 void run_in_background (char** args); 
+int read_inputs (char* line, char** inputs); 
 
 int main(int argc, char** argv) {
   while(1) {
     char* line = NULL;    // Pointer that will hold the line we read in
     size_t line_length;   // Space for the length of the line
-    int inital_counter = 0; 
     
     // Print the shell prompt
     printf("> ");
@@ -33,49 +33,26 @@ int main(int argc, char** argv) {
 
     // Check to see if the input contains a semi colon
     if (strchr (line, ';')) { 
+      int inital_counter = 0; 
       char** inputsWithSemicolon = (char**) malloc (strlen(line)); 
       char* tokenizeBySemicolon = strtok (line, ";\n");
       while (tokenizeBySemicolon != NULL) { 
-        printf("%s\n", tokenizeBySemicolon);
         inputsWithSemicolon[inital_counter] = tokenizeBySemicolon; 
         inital_counter++;
         tokenizeBySemicolon = strtok (NULL, ";\n");   
       }
-      int i;
-      for (i = 0; i < inital_counter; i++) { 
-        char* word = strtok (inputsWithSemicolon[i], " \n"); 
+      for (int i = 0; i < inital_counter; i++) { 
         char** inputs = (char**) malloc (strlen(inputsWithSemicolon[i])); 
-        int counter = 0; 
-        while (word != NULL) {    
-          inputs[counter] = word;
-          printf ("word is %s \n", inputs[counter]); 
-          counter++;
-          word = strtok (NULL, " \n");
-        } 
-        inputs[counter] = NULL;  
+        read_inputs (inputsWithSemicolon[i], inputs); 
         run_command(inputs); 
       }
     } else { 
-      int counter = 0; 
-      char* word = strtok (line, " \n"); 
-      char** inputs = (char**) malloc (strlen(line)); 
-      if (strcmp (word, "cd") == 0) {
-        word = "chdir";
-        int error_msg = chdir(strtok(NULL, " \n"));
-        if (error_msg < 0) {
-          perror("Error");
-        }
-      } else { 
-        while (word != NULL) {    
-          inputs[counter] = word;
-          counter++;
-          word = strtok (NULL, " \n");
-        }
-        //Append null terminator
-        inputs[counter] = NULL;  
-        run_command(inputs); 
-      }
+      char** inputs = (char**) malloc (strlen(line));  
+      read_inputs(line, inputs); 
+      run_command(inputs); 
     }
+
+
     free(line); 
   }
   return 0; 
@@ -109,6 +86,30 @@ int main(int argc, char** argv) {
     int exec_status;
 
   }
+
+
+  int read_inputs (char* line, char** inputs) { 
+    int counter = 0; 
+    char* word = strtok (line, " \n"); 
+    if (strcmp (word, "cd") == 0) {
+      word = "chdir";
+      int error_msg = chdir(strtok(NULL, " \n"));
+      if (error_msg < 0) {
+        perror("Error");
+      }
+    } else { 
+      while (word != NULL) {    
+        inputs[counter] = word;
+        counter++;
+        word = strtok (NULL, " \n");
+      }
+      //Append null terminator
+      inputs[counter] = NULL;
+    }
+    return counter;
+  }   
+
+
 
 
    
