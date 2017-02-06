@@ -17,13 +17,14 @@ int main(int argc, char** argv) {
     char* line = NULL;    // Pointer that will hold the line we read in
     size_t line_length;   // Space for the length of the line
 
+
     // Print the exit child processes 
     int status; 
-    int child_pid = waitpid(0, &status, WNOHANG); 
-    if (child_pid > 0) { 
-      printf ("Child process %d exited with status %d\n", child_pid, status);  
+    pid_t child_id = waitpid(-1, &status, WNOHANG);
+    if (child_id > 0) {
+        printf ("Child process %d exited with status %d\n", child_id, WEXITSTATUS(status)); 
     }
-    
+
     // Print the shell prompt
     printf("> ");
     
@@ -39,28 +40,45 @@ int main(int argc, char** argv) {
       }
     }
 
-    // Check to see if the input contains a semicolon
-    if (strchr (line, ';')) { 
-      int inital_counter = 0; 
-      char** inputsWithSemicolon = (char**) malloc (strlen(line)); 
-      char* tokenizeBySemicolon = strtok (line, ";\n");
-      while (tokenizeBySemicolon != NULL) { 
-        inputsWithSemicolon[inital_counter] = tokenizeBySemicolon; 
-        inital_counter++;
-        tokenizeBySemicolon = strtok (NULL, ";\n");   
-      }
-      for (int i = 0; i < inital_counter; i++) { 
-        char** inputs = (char**) malloc (strlen(inputsWithSemicolon[i])); 
-        tokenize_inputs (inputsWithSemicolon[i], inputs); 
+    // If the user inputs exit as a command, returns; 
+    if (strcmp (line, "exit\n") == 0) {
+      exit(0); 
+    } 
+
+    
+    // Citation: Below code is taken and modified from parser.c file provided by Professor Curtsinger. 
+    char* pos = line;
+    while(1) {
+      char* end_pos = strpbrk(pos, "&;\n");
+      
+      if(end_pos == NULL || *end_pos == '\n') {
+        char** inputs = (char**) malloc (strlen(pos));  
+        tokenize_inputs(pos, inputs); 
         run_command(inputs); 
+        // When end_pos is null or user enters '\n', end of the line is reached. 
+        break;
+      } else if(*end_pos == ';') {
+        // Found a semicolon
+        *end_pos = '\0';
+        char** inputs = (char**) malloc (strlen(pos));  
+        tokenize_inputs(pos, inputs); 
+        run_command(inputs); 
+      } else if(*end_pos == '&') {
+        // Found an ampersand
+        *end_pos = '\0';
+        char** inputs = (char**) malloc (strlen(pos));  
+        tokenize_inputs(pos, inputs); 
+        run_in_background(inputs); 
+      } else {
+        // This should never happen, but just being thorough
+        printf("Something strange happened!\n");
+        break; 
       }
-    } else { 
-      char** inputs = (char**) malloc (strlen(line));  
-      tokenize_inputs(line, inputs); 
-      run_command(inputs); 
+
+      // Move the position pointer to the beginning of the next split
+      pos = end_pos +1;
     }
-
-
+    
     free(line); 
   }
   return 0; 
@@ -104,6 +122,8 @@ int main(int argc, char** argv) {
         perror("Error");
         exit(2);
       }
+    } else { 
+      printf ("Child process %d exited with status %d\n", child_id, status); 
     }
   }
 
