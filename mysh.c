@@ -8,13 +8,21 @@
 #define MAX_ARGS 128
 
 void run_command(char** args);
-void run_in_background (char** args); 
-int read_inputs (char* line, char** inputs); 
+void run_in_background (char** args);
+int tokenize_inputs (char* line, char** inputs); 
+
 
 int main(int argc, char** argv) {
   while(1) {
     char* line = NULL;    // Pointer that will hold the line we read in
     size_t line_length;   // Space for the length of the line
+
+    // Print the exit child processes 
+    int status; 
+    int child_pid = waitpid(0, &status, WNOHANG); 
+    if (child_pid > 0) { 
+      printf ("Child process %d exited with status %d\n", child_pid, status);  
+    }
     
     // Print the shell prompt
     printf("> ");
@@ -31,7 +39,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    // Check to see if the input contains a semi colon
+    // Check to see if the input contains a semicolon
     if (strchr (line, ';')) { 
       int inital_counter = 0; 
       char** inputsWithSemicolon = (char**) malloc (strlen(line)); 
@@ -43,12 +51,12 @@ int main(int argc, char** argv) {
       }
       for (int i = 0; i < inital_counter; i++) { 
         char** inputs = (char**) malloc (strlen(inputsWithSemicolon[i])); 
-        read_inputs (inputsWithSemicolon[i], inputs); 
+        tokenize_inputs (inputsWithSemicolon[i], inputs); 
         run_command(inputs); 
       }
     } else { 
       char** inputs = (char**) malloc (strlen(line));  
-      read_inputs(line, inputs); 
+      tokenize_inputs(line, inputs); 
       run_command(inputs); 
     }
 
@@ -80,15 +88,27 @@ int main(int argc, char** argv) {
     } 
   }
 
-  void run_in_background (char** args) {
+  void run_in_background (char** args) { 
     int status; 
     pid_t child_id = fork();
     int exec_status;
-
+    // If the child creation process fails
+    if (child_id < 0) {
+      perror("Error");
+    }
+    // If the child creation is successful
+    if (child_id == 0) {
+      exec_status = execvp (args[0], args);
+      // If the command fails to execute
+      if (exec_status < 0) {
+        perror("Error");
+        exit(2);
+      }
+    }
   }
 
 
-  int read_inputs (char* line, char** inputs) { 
+  int tokenize_inputs (char* line, char** inputs) { 
     int counter = 0; 
     char* word = strtok (line, " \n"); 
     if (strcmp (word, "cd") == 0) {
