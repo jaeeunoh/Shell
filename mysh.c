@@ -71,8 +71,6 @@ void tokenize_by_special_chars (char* pos) {
     if(end_pos == NULL) {
       char** inputs = (char**) malloc (strlen(pos));  
       tokenize_inputs(pos, inputs); 
-      puts (inputs[0]); 
-      puts (inputs[1]); 
       run_command(inputs); 
       // When end_pos is null or user enters '\n', end of the line is reached. 
       break;
